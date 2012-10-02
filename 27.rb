@@ -38,7 +38,6 @@ thread_slices.each do |slice|
 			if memo[0] < n
 				memo = [n+1,var[0],var[1]]
 			end
-			p memo.to_s + '    ' + [n,var[0],var[1]].to_s + Thread.current.to_s
 			memo
 		end
 		mutex.synchronize do
