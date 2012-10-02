@@ -1,4 +1,10 @@
+require "rubygems"
+require "bundler/setup"
+# require your gems as usual
+Bundler.require
+
 require 'thread'
+
 mutex = Mutex.new
 
 num_of_threads = 4
@@ -26,26 +32,18 @@ thread_slices = b.each_slice(slice_size).inject([]) do |memo, slice|
 	memo << slice
 end
 
-thread_slices.each do |slice|
-	Thread.new do
-		best_combo = slice.inject([1,1,1]) do |memo, var|
-			n = 0
-			while is_prime(quadratic(n,var[0],var[1]))
-				n += 1
-			end
-			if memo[0] < n
-				memo = [n,var[0],var[1]]
-			end
-			memo
+results = Parallel.map(thread_slices) do |slice|
+	best_combo = slice.inject([1,1,1]) do |memo, var|
+		n = 0
+		while is_prime(quadratic(n,var[0],var[1]))
+			n += 1
 		end
-		mutex.synchronize do
-			final_array << best_combo
+		if memo[0] < n
+			memo = [n,var[0],var[1]]
 		end
+		memo
 	end
 end
 
 
-main, *threads = Thread.list
-threads.each { |t| t.join}
-
-p final_array
+p results
