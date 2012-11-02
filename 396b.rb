@@ -1,8 +1,4 @@
-require "rubygems"
-require "bundler/setup"
-# require your gems as usual
-Bundler.require
-
+require_relative 'parallel'
 require 'thread'
 
 class Integer
@@ -28,17 +24,17 @@ end
 def functiony(y,z,i)
   i = functionz(i,z)
   y.times do 
-    i = 2*(i+1)
-    p 'y' 
+    i = 2*(i+1)%1000000000
+    p i
   end
-  i
+  i 
 end
 
 def functionx(x,y,z,i)
   i = functiony(y,z,i)+1
   x.times do
     i = functiony(i,i,i)+1
-    p 'x'
+    p i
   end
   i-1
 end
@@ -68,18 +64,29 @@ def goodstein(m)
   n - 1
 end
 
-thread_slices = [[1,6,11],[2,7,12],[3,8,13],[4,9,14],[5,10,15]]
+thread_slices = [[1,6],[2,7],[3],[4],[5,8]]
+# thread_slices = [[1,6],[2,7],[3],[4],[5]]
 
 results = Parallel.map(thread_slices) do |slice|
   sum = 0
-  (1..8).each do |m|
-    m = m.to_base(2).reverse!
-    sum += functionw(m[3]||=0,m[2]||=0,m[1]||=0,m[0],1) -1
+  slice.each do |m|
+    mutex = Mutex.new
+    Thread.new do
+      m = m.to_base(2).reverse!
+      m = functionw(m[3]||=0,m[2]||=0,m[1]||=0,m[0],1) -1
+      mutex.synchronize do
+        sum += m
+      end
+    end
+    main, *threads = Thread.list
+    threads.each do |t|
+      t.join
+    end
     sum
   end
   sum
 end
 
-p results
+p results.inject{|sum,x| sum + x }
 
 

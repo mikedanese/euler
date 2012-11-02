@@ -1,8 +1,4 @@
-require "rubygems"
-require "bundler/setup"
-# require your gems as usual
-Bundler.require
-
+require_relative 'parallel'
 require 'thread'
 
 class Integer
